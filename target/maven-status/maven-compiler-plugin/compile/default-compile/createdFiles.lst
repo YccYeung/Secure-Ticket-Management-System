@@ -1,6 +1,6 @@
-TicketSiteUser.class
-TicketSystemFrontend.class
-TicketSystemDB.class
-AESEncryption.class
-TicketSystemBackend.class
-PaymentGateway.class
+com/example/ticketsystem/model/TicketSiteUser.class
+com/example/ticketsystem/TicketSystemApplication.class
+com/example/ticketsystem/service/PaymentGateway.class
+com/example/ticketsystem/service/AESEncryption.class
+com/example/ticketsystem/service/TicketSystemBackend.class
+com/example/ticketsystem/repository/TicketSystemDB.class

@@ -1,6 +1,11 @@
+package com.example.ticketsystem.model;
 import java.sql.SQLException;
 import java.util.InputMismatchException;
 import java.util.Scanner;
+
+import com.example.ticketsystem.repository.TicketSystemDB;
+import com.example.ticketsystem.service.PaymentGateway;
+import com.example.ticketsystem.service.TicketSystemBackend;
 
 /**
  * Represents a user in the Ticket Management System.
@@ -112,7 +117,6 @@ public class TicketSiteUser {
     System.out.println("|  \u001B[32m5:\u001B[0m List Current Tickets Held                   |");
     System.out.println("|                                                 |");
     System.out.println("===================================================");
-    TicketSystemFrontend.printFancyPrompt();
   }
 
   /**

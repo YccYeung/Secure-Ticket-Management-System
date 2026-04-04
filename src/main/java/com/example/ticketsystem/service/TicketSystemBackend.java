@@ -1,4 +1,9 @@
+package com.example.ticketsystem.service;
 import org.passay.*;
+
+import com.example.ticketsystem.model.TicketSiteUser;
+import com.example.ticketsystem.repository.TicketSystemDB;
+
 import java.util.Arrays;
 import java.sql.SQLException;
 import java.util.Scanner;

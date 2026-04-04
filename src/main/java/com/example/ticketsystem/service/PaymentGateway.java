@@ -1,4 +1,8 @@
+package com.example.ticketsystem.service;
 import javax.crypto.SecretKey;
+
+import com.example.ticketsystem.repository.TicketSystemDB;
+
 import java.sql.SQLException;
 import java.util.HashMap;
 

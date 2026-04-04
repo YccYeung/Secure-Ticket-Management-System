@@ -1,4 +1,8 @@
+package com.example.ticketsystem.repository;
 import org.springframework.security.crypto.bcrypt.BCrypt;
+
+import com.example.ticketsystem.service.AESEncryption;
+
 import javax.crypto.SecretKey;
 import java.sql.*;
 import java.text.SimpleDateFormat;
