@@ -12,7 +12,7 @@ import java.util.HashMap;
  */
 public class TicketSystemDB {
 
-  private final String JDBC_URL = "jdbc:mysql://localhost:3306/";
+  private final String JDBC_URL = "jdbc:mysql://127.0.0.1:3306/";
   private final String DBNAME = "SystemDB";
   private final String jdbcUrlWithDatabase = JDBC_URL + DBNAME;
   private final String USER = "Justin";
@@ -63,19 +63,58 @@ public class TicketSystemDB {
   public void createTable() throws SQLException {
     Connection connection = null;
     Statement statement = null;
-
+    // Create users table
     try {
       connection = DriverManager.getConnection(jdbcUrlWithDatabase, USER, PASSWORD);
       statement = connection.createStatement();
       String sql = "CREATE TABLE IF NOT EXISTS users (" +
           "id INT AUTO_INCREMENT PRIMARY KEY, " +
-          "username VARCHAR(25) NOT NULL, " +
+          "username VARCHAR(50) NOT NULL, " +
           "password VARCHAR(100) NOT NULL, " +
           "cardNumber VARCHAR(100) NOT NULL, " +
           "money int NOT NULL)";
       statement.executeUpdate(sql);
     } catch (SQLException e) {
       System.out.println(e.getMessage());
+    } finally {
+      if (statement != null) statement.close();
+      if (connection != null) connection.close();
+    }
+
+    // Create tickets table
+    try {
+      connection = DriverManager.getConnection(jdbcUrlWithDatabase, USER, PASSWORD);
+      statement = connection.createStatement();
+      String sql = "CREATE TABLE IF NOT EXISTS tickets (" +
+          "id INT AUTO_INCREMENT PRIMARY KEY, " +
+          "name VARCHAR(50) NOT NULL, " +
+          "location VARCHAR(50) NOT NULL, " +
+          "price DOUBLE NOT NULL, " +
+          "quantity INT NOT NULL, " + 
+          "event_date DATE NOT NULL)";
+      statement.executeUpdate(sql);
+    } catch (SQLException e) {
+      System.out.println(e.getMessage()); 
+    } finally {
+      if (statement != null) statement.close();
+      if (connection != null) connection.close();
+    }
+
+    // Create user_tickets table
+    try {
+      connection = DriverManager.getConnection(jdbcUrlWithDatabase, USER, PASSWORD);
+      statement = connection.createStatement();
+      String sql = "CREATE TABLE IF NOT EXISTS user_tickets (" +
+          "id INT AUTO_INCREMENT PRIMARY KEY, " +
+          "quantity INT NOT NULL, " +
+          "user_id INT NOT NULL, " +
+          "ticket_id INT NOT NULL, " +
+          "UNIQUE KEY unique_user_ticket (user_id, ticket_id), " + 
+          "FOREIGN KEY (user_id) REFERENCES users(id), " +
+          "FOREIGN KEY (ticket_id) REFERENCES tickets(id))";
+      statement.executeUpdate(sql);
+    } catch (SQLException e) {
+      System.out.println(e.getMessage()); 
     } finally {
       if (statement != null) statement.close();
       if (connection != null) connection.close();
@@ -655,6 +694,4 @@ public class TicketSystemDB {
       System.out.println(e.getMessage());
     }
   }
-
-
 }

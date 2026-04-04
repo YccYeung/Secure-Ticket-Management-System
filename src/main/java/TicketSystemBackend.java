@@ -188,7 +188,6 @@ public class TicketSystemBackend {
     public boolean newCardNumberPolicy(String newCardNumber) {
         return newCardNumber.length() == 16 && newCardNumber.matches("\\d+");
     }
-
 }
 
 

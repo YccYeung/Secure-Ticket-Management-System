@@ -45,6 +45,7 @@ public class TicketSystemFrontend {
    *
    */
   public static void main(String[] args) throws SQLException {
+    new TicketSystemDB();
     Scanner scanner = new Scanner(System.in);
     int userChoice = -1;
 
