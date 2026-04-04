@@ -8,7 +8,7 @@ import java.util.HashMap;
  */
 public class PaymentGateway {
 
-  private final String secretKey = "wK6XNsTzLHxknM7XsB4a9w==";
+  private final String secretKey = System.getenv("AES_SECRET_KEY");
   private HashMap<String, String> transaction = new HashMap<>();
   TicketSystemDB ticketSystemDB = new TicketSystemDB();
 
@@ -48,7 +48,7 @@ public class PaymentGateway {
   public void processPayment(String username, String token, double moneyAmount)
       throws SQLException {
     String encryptedCard = transaction.get(token);
-    if (token == null || encryptedCard == null) {
+    if (encryptedCard == null || token == null ) {
       System.out.println("Invalid Token");
       return;
     }
@@ -68,7 +68,7 @@ public class PaymentGateway {
   public void refundPayment(String username, String token, double moneyAmount)
       throws SQLException {
     String encryptedCard = transaction.get(token);
-    if (token == null || encryptedCard == null) {
+    if (encryptedCard == null || token == null) {
       System.out.println("Invalid Token");
       return;
     }

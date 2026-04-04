@@ -42,7 +42,7 @@ public class TicketSystemBackend {
         System.out.print("|  \u001B[33mPlease Enter your username:\u001B[0m ");
         String usernameCheck = scanner.nextLine(); // receive username from user input
 
-        while (!backend.userNameVerification(usernameCheck)) {
+        while (usernameCheck.isEmpty() || !backend.userNameVerification(usernameCheck)) {
             System.out.println("|  \u001B[31mThe username is invalid! Please try again\u001B[0m");
             System.out.print("|  \u001B[33mPlease Enter your username:\u001B[0m ");
             usernameCheck = scanner.nextLine();
@@ -50,7 +50,7 @@ public class TicketSystemBackend {
 
         System.out.print("|  \u001B[33mPlease Enter your password:\u001B[0m ");
         String passwordCheck = scanner.nextLine(); // receive password from user input
-        while (!backend.passwordVerification(usernameCheck, passwordCheck)) {
+        while (passwordCheck.isEmpty() || !backend.passwordVerification(usernameCheck, passwordCheck)) {
             System.out.println("|  \u001B[31mThe password is invalid! Please try again\u001B[0m");
             System.out.print("|  \u001B[33mPlease Enter your password:\u001B[0m ");
             passwordCheck = scanner.nextLine();
@@ -104,7 +104,7 @@ public class TicketSystemBackend {
 
         System.out.print("|  \u001B[33mPlease Enter your username:\u001B[0m ");
         String newUserName = scanner.nextLine();
-        while (!backend.newUsernamePolicy(newUserName)) {
+        while (newUserName.isEmpty() || !backend.newUsernamePolicy(newUserName)) {
             System.out.println("|  \u001B[31mUsername length must be between 6-20 characters and must not duplicate existing users.\u001B[0m");
             System.out.print("|  \u001B[33mPlease Enter your username:\u001B[0m ");
             newUserName = scanner.nextLine();
@@ -112,7 +112,7 @@ public class TicketSystemBackend {
 
         System.out.print("|  \u001B[33mPlease Enter your password:\u001B[0m ");
         String newPassword = scanner.nextLine();
-        while (!backend.newPasswordPolicy(newPassword)) {
+        while (newPassword.isEmpty() || !backend.newPasswordPolicy(newPassword)) {
             System.out.println("|  \u001B[31mPassword length must be between 8-20 characters long and include at least 3 different character categories.\u001B[0m");
             System.out.print("|  \u001B[33mPlease Enter your password:\u001B[0m ");
             newPassword = scanner.nextLine();
@@ -120,7 +120,7 @@ public class TicketSystemBackend {
 
         System.out.print("|  \u001B[33mPlease Enter your credit card number:\u001B[0m ");
         String newCardNumber = scanner.nextLine();
-        while (!backend.newCardNumberPolicy(newCardNumber)) {
+        while (newCardNumber.isEmpty() || !backend.newCardNumberPolicy(newCardNumber)) {
             System.out.println("|  \u001B[31mCredit Card Number must be a 16-digit number.\u001B[0m");
             System.out.print("|  \u001B[33mPlease Enter your credit card number:\u001B[0m ");
             newCardNumber = scanner.nextLine();
@@ -149,7 +149,7 @@ public class TicketSystemBackend {
      * @return true if the username meets the policy, false otherwise
      */
     public boolean newUsernamePolicy(String newUsername) {
-        if (newUsername == null || newUsername.length() <= 6 || newUsername.length() >= 20) {return false;}
+        if (newUsername == null || newUsername.length() < 6 || newUsername.length() > 20) {return false;}
         return !ticketSystemDB.userVerify(newUsername);
     }
 
@@ -189,5 +189,3 @@ public class TicketSystemBackend {
         return newCardNumber.length() == 16 && newCardNumber.matches("\\d+");
     }
 }
-
-

@@ -4,6 +4,10 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.util.Base64;
+import javax.crypto.spec.GCMParameterSpec;
+
+import java.nio.charset.StandardCharsets;
+import java.security.*;
 
 /**
  * Provides AES encryption and decryption utilities.
@@ -54,12 +58,22 @@ public class AESEncryption {
    * @return The Base64-encoded string representation of the encrypted data.
    * @throws Exception If an error occurs during encryption.
    */
-    public static String encrypt(String data, SecretKey key) throws Exception{
-      Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-      IvParameterSpec iv = new IvParameterSpec(new byte[16]);
-      cipher.init(Cipher.ENCRYPT_MODE, key, iv);
-      byte[] encryptData = cipher.doFinal(data.getBytes());
-      return Base64.getEncoder().encodeToString(encryptData);
+    public static String encrypt(String data, SecretKey key) throws Exception {
+      // Every encryption gets a unique IV so the same plaintext never produces the same ciphertext twice
+      byte[] iv = new byte[12];
+      SecureRandom secureRandom = new SecureRandom();
+      secureRandom.nextBytes(iv);
+
+      Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+      GCMParameterSpec gcmSpec = new GCMParameterSpec(128, iv);
+      cipher.init(Cipher.ENCRYPT_MODE, key, gcmSpec);
+
+      byte[] encryptedBytes = cipher.doFinal(data.getBytes(StandardCharsets.UTF_8));
+      byte[] combinedIvAndCipherText = new byte[iv.length + encryptedBytes.length];
+      System.arraycopy(iv, 0, combinedIvAndCipherText, 0, iv.length);
+      System.arraycopy(encryptedBytes, 0, combinedIvAndCipherText, iv.length, encryptedBytes.length);
+
+      return Base64.getEncoder().encodeToString(combinedIvAndCipherText);
     }
 
   /**
@@ -70,11 +84,18 @@ public class AESEncryption {
    * @return The decrypted data as a string.
    * @throws Exception If an error occurs during decryption.
    */
-    public static String decrypt(String encryptData, SecretKey key) throws Exception{
-      Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-      IvParameterSpec iv = new IvParameterSpec(new byte[16]);
-      cipher.init(Cipher.DECRYPT_MODE, key, iv);
-      byte[] decryptedData = Base64.getDecoder().decode(encryptData);
-      return new String(cipher.doFinal(decryptedData));
+    public static String decrypt(String encryptData, SecretKey key) throws Exception {
+
+      byte[] decodedCipherText = Base64.getDecoder().decode(encryptData);
+      byte[] iv = new byte[12];
+      System.arraycopy(decodedCipherText, 0, iv, 0, iv.length);
+      byte[] encryptedText = new byte[decodedCipherText.length - iv.length];
+      System.arraycopy(decodedCipherText, iv.length, encryptedText, 0, encryptedText.length);
+
+      GCMParameterSpec gcmSpec = new GCMParameterSpec(128, iv);
+      Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+      cipher.init(Cipher.DECRYPT_MODE, key, gcmSpec);
+
+      return new String(cipher.doFinal(encryptedText), StandardCharsets.UTF_8);
     }
 }

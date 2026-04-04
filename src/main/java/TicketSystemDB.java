@@ -12,12 +12,14 @@ import java.util.HashMap;
  */
 public class TicketSystemDB {
 
-  private final String JDBC_URL = "jdbc:mysql://127.0.0.1:3306/";
-  private final String DBNAME = "SystemDB";
+  private final String DB_HOST = System.getenv("DB_HOST");
+  private final String DB_PORT = System.getenv("DB_PORT");
+  private final String DBNAME = System.getenv("DB_NAME");
+  private final String JDBC_URL = "jdbc:mysql://" + DB_HOST + ":" + DB_PORT + "/";
   private final String jdbcUrlWithDatabase = JDBC_URL + DBNAME;
-  private final String USER = "Justin";
-  private final String PASSWORD = "123456";
-  private final String secretKey = "wK6XNsTzLHxknM7XsB4a9w==";
+  private final String USER = System.getenv("DB_USER");
+  private final String PASSWORD = System.getenv("DB_PASSWORD");
+  private final String secretKey = System.getenv("AES_SECRET_KEY");
   public HashMap<String, Integer> gameNameAllowList = new HashMap<>();
   public HashMap<String, Integer> availableToSellList = new HashMap<>();
 
