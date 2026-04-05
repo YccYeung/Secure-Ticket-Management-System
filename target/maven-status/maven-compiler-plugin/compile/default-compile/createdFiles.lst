@@ -1,10 +1,11 @@
 com/example/ticketsystem/service/AuthService.class
+com/example/ticketsystem/service/JwtService.class
 com/example/ticketsystem/model/LoginRequest.class
 com/example/ticketsystem/TicketSystemApplication.class
 com/example/ticketsystem/service/PaymentGateway.class
 com/example/ticketsystem/service/AESEncryption.class
 com/example/ticketsystem/config/SecurityConfig.class
-com/example/ticketsystem/service/TicketSystemBackend.class
+com/example/ticketsystem/config/JwtAuthFilter.class
 com/example/ticketsystem/repository/TicketSystemDB.class
 com/example/ticketsystem/controller/AuthController.class
 com/example/ticketsystem/model/RegisterRequest.class

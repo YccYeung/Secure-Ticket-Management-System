@@ -24,15 +24,12 @@ public class AuthService {
 
     public boolean register(String username, String password, String cardNumber) {
         if (!newUsernamePolicy(username)) {
-            System.out.println("Username policy failed");
             return false;
         } 
         if (!newPasswordPolicy(password)) {
-            System.out.println("Password policy failed");
             return false;
         } 
         if (!newCardNumberPolicy(cardNumber)) {
-            System.out.println("Card number policy failed");
             return false;
         }
 
