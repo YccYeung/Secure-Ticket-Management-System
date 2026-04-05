@@ -1,9 +1,12 @@
 package com.example.ticketsystem.repository;
 import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.stereotype.Repository;
 
 import com.example.ticketsystem.service.AESEncryption;
 
 import javax.crypto.SecretKey;
+import javax.sql.DataSource;
+
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
@@ -14,8 +17,10 @@ import java.util.HashMap;
  * game and ticket data.
  *
  */
+@Repository
 public class TicketSystemDB {
 
+  private final DataSource dataSource;
   private final String DB_HOST = System.getenv("DB_HOST");
   private final String DB_PORT = System.getenv("DB_PORT");
   private final String DBNAME = System.getenv("DB_NAME");
@@ -30,22 +35,22 @@ public class TicketSystemDB {
   /**
    * Constructs a TicketSystemDB object and initializes the database.
    * This constructor creates the database and necessary tables if they do not already exist.
-   *
-   * @throws SQLException If a database access error occurs.
    */
-  public TicketSystemDB() throws SQLException {createDatabase();createTable();}
+  public TicketSystemDB(DataSource dataSource) {
+    this.dataSource = dataSource;
+    createDatabase();
+    createTable();
+  }
 
   /**
    * Creates the database if it does not already exist.
-   *
-   * @throws SQLException if a database access error occurs
    */
-  public void createDatabase() throws SQLException {
+  public void createDatabase() {
     Connection connection = null;
     Statement statement = null;
 
     try {
-      connection = DriverManager.getConnection(JDBC_URL, USER, PASSWORD);
+      connection = dataSource.getConnection();
       statement = connection.createStatement();
       String sql = "CREATE DATABASE IF NOT EXISTS " + DBNAME;
       statement.executeUpdate(sql);
@@ -63,15 +68,13 @@ public class TicketSystemDB {
 
   /**
    * Creates the users table if it does not already exist.
-   *
-   * @throws SQLException if a database access error occurs
    */
-  public void createTable() throws SQLException {
+  public void createTable() {
     Connection connection = null;
     Statement statement = null;
     // Create users table
     try {
-      connection = DriverManager.getConnection(jdbcUrlWithDatabase, USER, PASSWORD);
+      connection = dataSource.getConnection();;
       statement = connection.createStatement();
       String sql = "CREATE TABLE IF NOT EXISTS users (" +
           "id INT AUTO_INCREMENT PRIMARY KEY, " +
@@ -82,14 +85,11 @@ public class TicketSystemDB {
       statement.executeUpdate(sql);
     } catch (SQLException e) {
       System.out.println(e.getMessage());
-    } finally {
-      if (statement != null) statement.close();
-      if (connection != null) connection.close();
     }
 
     // Create tickets table
     try {
-      connection = DriverManager.getConnection(jdbcUrlWithDatabase, USER, PASSWORD);
+      connection = dataSource.getConnection();;
       statement = connection.createStatement();
       String sql = "CREATE TABLE IF NOT EXISTS tickets (" +
           "id INT AUTO_INCREMENT PRIMARY KEY, " +
@@ -101,14 +101,11 @@ public class TicketSystemDB {
       statement.executeUpdate(sql);
     } catch (SQLException e) {
       System.out.println(e.getMessage()); 
-    } finally {
-      if (statement != null) statement.close();
-      if (connection != null) connection.close();
     }
 
     // Create user_tickets table
     try {
-      connection = DriverManager.getConnection(jdbcUrlWithDatabase, USER, PASSWORD);
+      connection = dataSource.getConnection();;
       statement = connection.createStatement();
       String sql = "CREATE TABLE IF NOT EXISTS user_tickets (" +
           "id INT AUTO_INCREMENT PRIMARY KEY, " +
@@ -121,10 +118,7 @@ public class TicketSystemDB {
       statement.executeUpdate(sql);
     } catch (SQLException e) {
       System.out.println(e.getMessage()); 
-    } finally {
-      if (statement != null) statement.close();
-      if (connection != null) connection.close();
-    }
+    } 
   }
 
   /**
@@ -146,7 +140,7 @@ public class TicketSystemDB {
     }
 
     try {
-      Connection connection = DriverManager.getConnection(jdbcUrlWithDatabase, USER, PASSWORD);
+      Connection connection = dataSource.getConnection();;
       PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
       preparedStatement.setString(1, username);
@@ -167,11 +161,10 @@ public class TicketSystemDB {
    * @return true if the user exists, false otherwise
    */
   public boolean userVerify(String username) {
-    String jdbcUrlWithDatabase = JDBC_URL + DBNAME + "?serverTimezone=UTC&useSSL=false";
     String sql = "SELECT * from users where username = ?";
 
     try {
-      Connection connection = DriverManager.getConnection(jdbcUrlWithDatabase, USER, PASSWORD);
+      Connection connection = dataSource.getConnection();
       PreparedStatement preparedStatement = connection.prepareStatement(sql);
       preparedStatement.setString(1, username);
 
@@ -202,11 +195,10 @@ public class TicketSystemDB {
    * @return true if the provided password matches the stored password, false otherwise.
    */
   public boolean passwordVerify(String username, String password) {
-    String jdbcUrlWithDatabase = JDBC_URL + DBNAME + "?serverTimezone=UTC&useSSL=false";
     String sql = "SELECT password from users where username = ?";
 
     try {
-      Connection connection = DriverManager.getConnection(jdbcUrlWithDatabase, USER, PASSWORD);
+      Connection connection = dataSource.getConnection();
       PreparedStatement preparedStatement = connection.prepareStatement(sql);
       preparedStatement.setString(1, username);
 
@@ -243,7 +235,7 @@ public class TicketSystemDB {
   public boolean creditCardVerify(String username, String cardNumber) throws SQLException {
     String sql = "select cardNumber from users where username = ?";
     try  {
-      Connection connection = DriverManager.getConnection(jdbcUrlWithDatabase, USER, PASSWORD);
+      Connection connection = dataSource.getConnection();
       PreparedStatement preparedStatement = connection.prepareStatement(sql);
       preparedStatement.setString(1, username);
       ResultSet resultSet = preparedStatement.executeQuery();
@@ -279,10 +271,10 @@ public class TicketSystemDB {
    * @throws SQLException If a database access error occurs.
    */
   public String getCardNumber(String username) throws SQLException {
-    String sql = "select cardNumber from users where username = ?";
     String plainCardNumber = "";
+    String sql = "select cardNumber from users where username = ?";
     try  {
-      Connection connection = DriverManager.getConnection(jdbcUrlWithDatabase, USER, PASSWORD);
+      Connection connection = dataSource.getConnection();;
       PreparedStatement preparedStatement = connection.prepareStatement(sql);
       preparedStatement.setString(1, username);
       ResultSet resultSet = preparedStatement.executeQuery();
@@ -317,9 +309,8 @@ public class TicketSystemDB {
    * @throws SQLException If a database access error occurs.
    */
   public void depositMoney(String username, Double moneyAmount) throws SQLException {
-    String jdbcUrlWithDatabase = JDBC_URL + DBNAME + "?serverTimezone=UTC&useSSL=false";
     String sql = "Update users set money = money + ? where username = ?";
-    try (Connection connection = DriverManager.getConnection(jdbcUrlWithDatabase, USER, PASSWORD);
+    try (Connection connection = dataSource.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
       preparedStatement.setDouble(1, moneyAmount);
       preparedStatement.setString(2, username);
@@ -340,10 +331,9 @@ public class TicketSystemDB {
    * @throws SQLException If a database access error occurs.
    */
   public boolean checkAccountBalance(String username, Double moneyAmount) throws SQLException {
-    String jdbcUrlWithDatabase = JDBC_URL + DBNAME + "?serverTimezone=UTC&useSSL=false";
     String sql = "Select money from users where username = ?";
 
-    try (Connection connection = DriverManager.getConnection(jdbcUrlWithDatabase, USER, PASSWORD);
+    try (Connection connection = dataSource.getConnection();
          PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
         preparedStatement.setString(1, username);
@@ -376,10 +366,9 @@ public class TicketSystemDB {
    * @throws SQLException If a database access error occurs.
    */
   public boolean ticketQuantityVerify(String gameName, int ticketNumber) throws SQLException{
-    String jdbcUrlWithDatabase = JDBC_URL + DBNAME + "?serverTimezone=UTC&useSSL=false";
     String sql = "Select quantity from tickets where name = ?";
 
-    try (Connection connection = DriverManager.getConnection(jdbcUrlWithDatabase, USER, PASSWORD);
+    try (Connection connection = dataSource.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
       preparedStatement.setString(1, gameName);
       try (ResultSet resultSet = preparedStatement.executeQuery()){
@@ -406,11 +395,10 @@ public class TicketSystemDB {
    * @return The total cost of the specified number of tickets.
    */
   public double ticketTotalCost(String gameName, int ticketNumber) {
-    String jdbcUrlWithDatabase = JDBC_URL + DBNAME + "?serverTimezone=UTC&useSSL=false";
     String sql = "Select price from tickets where name = ?";
     double totalCost = 0.0;
 
-    try (Connection connection = DriverManager.getConnection(jdbcUrlWithDatabase, USER, PASSWORD);
+    try (Connection connection = dataSource.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
         preparedStatement.setString(1, gameName);
@@ -440,9 +428,8 @@ public class TicketSystemDB {
    * @throws SQLException If a database access error occurs.
    */
   public void purchaseRequest(String username, Double moneyAmount) throws SQLException {
-    String jdbcUrlWithDatabase = JDBC_URL + DBNAME + "?serverTimezone=UTC&useSSL=false";
     String sql = "Update users set money = money - ? where username = ?";
-    try (Connection connection = DriverManager.getConnection(jdbcUrlWithDatabase, USER, PASSWORD);
+    try (Connection connection = dataSource.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
       preparedStatement.setDouble(1, moneyAmount);
       preparedStatement.setString(2, username);
@@ -461,9 +448,8 @@ public class TicketSystemDB {
    * @throws SQLException If a database access error occurs.
    */
   public void refundRequest(String username, Double moneyAmount) throws SQLException {
-    String jdbcUrlWithDatabase = JDBC_URL + DBNAME + "?serverTimezone=UTC&useSSL=false";
     String sql = "Update users set money = money + ? where username = ?";
-    try (Connection connection = DriverManager.getConnection(jdbcUrlWithDatabase, USER, PASSWORD);
+    try (Connection connection = dataSource.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
       preparedStatement.setDouble(1, moneyAmount);
       preparedStatement.setString(2, username);
@@ -482,9 +468,8 @@ public class TicketSystemDB {
    * @throws SQLException If a database access error occurs.
    */
   public void updateTicketQuantity(String gameName, int ticketNumber) throws SQLException {
-    String jdbcUrlWithDatabase = JDBC_URL + DBNAME + "?serverTimezone=UTC&useSSL=false";
     String sql = "Update tickets set quantity = quantity + ? where name = ?";
-    try (Connection connection = DriverManager.getConnection(jdbcUrlWithDatabase, USER, PASSWORD);
+    try (Connection connection = dataSource.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
       preparedStatement.setInt(1, ticketNumber);
       preparedStatement.setString(2, gameName);
@@ -505,13 +490,12 @@ public class TicketSystemDB {
    * @throws SQLException If a database access error occurs.
    */
   public int getUserTicketQuantity(String username, String gameName) throws SQLException {
-    String jdbcUrlWithDatabase = JDBC_URL + DBNAME + "?serverTimezone=UTC&useSSL=false";
     String sql = "Select quantity from user_tickets " +
         "where user_id = (SELECT id from users where username = ?) " +
         "AND ticket_id = (SELECT id from tickets where name = ?)";
     int ticketNumber = 0;
 
-    try (Connection connection = DriverManager.getConnection(jdbcUrlWithDatabase, USER, PASSWORD);
+    try (Connection connection = dataSource.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
       preparedStatement.setString(1, username);
       preparedStatement.setString(2, gameName);
@@ -540,11 +524,10 @@ public class TicketSystemDB {
    * @param ticketNumbers The number of tickets purchased.
    */
   public void createUserTicketsRecord(String username, String gameName, int ticketNumbers) {
-    String jdbcUrlWithDatabase = JDBC_URL + DBNAME + "?serverTimezone=UTC&useSSL=false";
     String sql = "INSERT INTO user_tickets (user_id, ticket_id, quantity) " +
         "SELECT u.id, t.id, ? from users u, tickets t where u.username = ? and t.name = ?" +
         "ON DUPLICATE KEY UPDATE user_tickets.quantity = user_tickets.quantity + VALUES(quantity)";
-    try (Connection connection = DriverManager.getConnection(jdbcUrlWithDatabase, USER, PASSWORD);
+    try (Connection connection = dataSource.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
       preparedStatement.setDouble(1, ticketNumbers);
       preparedStatement.setString(2, username);
@@ -564,12 +547,11 @@ public class TicketSystemDB {
    * @param ticketNumbers The number of tickets to be subtracted from the user's current holding.
    */
   public void updateUserTicketsNumber(String username, String gameName, int ticketNumbers) {
-    String jdbcUrlWithDatabase = JDBC_URL + DBNAME + "?serverTimezone=UTC&useSSL=false";
     String sql = "Update user_tickets set quantity = quantity - ? " +
         "where user_id = (SELECT id from users where username = ?)" +
         "AND ticket_id = (SELECT id from tickets where name = ?)";
 
-    try (Connection connection = DriverManager.getConnection(jdbcUrlWithDatabase, USER, PASSWORD);
+    try (Connection connection = dataSource.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
       preparedStatement.setInt(1, ticketNumbers);
       preparedStatement.setString(2, username);
@@ -589,11 +571,10 @@ public class TicketSystemDB {
    * @param gameName The name of the game for which the ticket record is to be deleted.
    */
   public void deleteUserTicketsRecord(String username, String gameName) {
-    String jdbcUrlWithDatabase = JDBC_URL + DBNAME + "?serverTimezone=UTC&useSSL=false";
     String sql = "DELETE from user_tickets where user_id = (SELECT id from users where username = ?) " +
         "AND ticket_id = (SELECT id from tickets where name = ?)";
 
-    try (Connection connection = DriverManager.getConnection(jdbcUrlWithDatabase, USER, PASSWORD);
+    try (Connection connection = dataSource.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
       preparedStatement.setString(1, username);
       preparedStatement.setString(2, gameName);
@@ -609,11 +590,10 @@ public class TicketSystemDB {
    * displaying them in a formatted table with ANSI colors.
    */
   public void listCurrentTicketsHolding() {
-    String jdbcUrlWithDatabase = JDBC_URL + DBNAME + "?serverTimezone=UTC&useSSL=false";
     String sql = "SELECT t.name, t.price, s.quantity from tickets t " +
         "INNER JOIN user_tickets s ON s.ticket_id = t.id " +
         "INNER JOIN users u ON s.user_id = u.id";
-    try (Connection connection = DriverManager.getConnection(jdbcUrlWithDatabase, USER, PASSWORD);
+    try (Connection connection = dataSource.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
       ResultSet resultSet = preparedStatement.executeQuery();
@@ -665,7 +645,7 @@ public class TicketSystemDB {
    */
   public void gameSchedule() {
     String query = "SELECT name, location, price, event_date FROM tickets ORDER BY event_date";
-    try (Connection conn = DriverManager.getConnection(jdbcUrlWithDatabase, USER, PASSWORD);
+    try (Connection conn = dataSource.getConnection();
         Statement stmt = conn.createStatement();
         ResultSet rs = stmt.executeQuery(query)) {
 

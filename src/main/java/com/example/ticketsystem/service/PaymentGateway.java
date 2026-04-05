@@ -1,6 +1,8 @@
 package com.example.ticketsystem.service;
 import javax.crypto.SecretKey;
 
+import org.springframework.stereotype.Service;
+
 import com.example.ticketsystem.repository.TicketSystemDB;
 
 import java.sql.SQLException;
@@ -10,18 +12,21 @@ import java.util.HashMap;
  * Handles payment processing for the Ticket Management System.
  * This class provides methods for tokenizing card numbers, processing payments, and handling refunds.
  */
+@Service
 public class PaymentGateway {
 
   private final String secretKey = System.getenv("AES_SECRET_KEY");
   private HashMap<String, String> transaction = new HashMap<>();
-  TicketSystemDB ticketSystemDB = new TicketSystemDB();
+  private final TicketSystemDB ticketSystemDB;
 
   /**
    * Constructs a PaymentGateway object and initializes the ticket system database.
    *
    * @throws SQLException If a database access error occurs.
    */
-  public PaymentGateway() throws SQLException {}
+  public PaymentGateway(TicketSystemDB ticketSystemDB) {
+    this.ticketSystemDB = ticketSystemDB;
+  } 
 
   /**
    * Generates a token for the provided card number by encrypting it.

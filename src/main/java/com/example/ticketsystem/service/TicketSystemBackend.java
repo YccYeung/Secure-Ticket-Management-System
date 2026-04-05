@@ -1,12 +1,11 @@
 package com.example.ticketsystem.service;
 import org.passay.*;
+import org.springframework.stereotype.Service;
 
-import com.example.ticketsystem.model.TicketSiteUser;
 import com.example.ticketsystem.repository.TicketSystemDB;
 
 import java.util.Arrays;
 import java.sql.SQLException;
-import java.util.Scanner;
 
 /**
  * Backend functionality for the Ticket Management System.
@@ -16,55 +15,13 @@ import java.util.Scanner;
  * for applications
  *
  */
+@Service
 public class TicketSystemBackend {
 
-    public TicketSystemDB ticketSystemDB = new TicketSystemDB();
+    private final TicketSystemDB ticketSystemDB;
 
-    public TicketSystemBackend() throws SQLException {}
-
-    /**
-     * Interface for user login.
-     *
-     * This method handles the user login process by prompting the user to enter their username and password.
-     * It verifies the username and password against the backend database and grants access if the credentials are valid.
-     *
-     * The user is prompted to re-enter their credentials if the provided username or password is invalid.
-     * Once the user is successfully logged in, they are redirected to their user dashboard.
-     *
-     * @throws SQLException If a database access error occurs.
-     */
-    public static void loginInterface() throws SQLException {
-        Scanner scanner = new Scanner(System.in);
-        TicketSystemBackend backend = new TicketSystemBackend();
-
-        System.out.println("\n");
-        System.out.println("===================================================");
-        System.out.println("|                                                 |");
-        System.out.println("|        \u001B[1m\u001B[34mLOGIN TO TICKET MANAGEMENT SYSTEM\u001B[0m        |");
-        System.out.println("|                                                 |");
-        System.out.println("===================================================");
-
-        System.out.print("|  \u001B[33mPlease Enter your username:\u001B[0m ");
-        String usernameCheck = scanner.nextLine(); // receive username from user input
-
-        while (usernameCheck.isEmpty() || !backend.userNameVerification(usernameCheck)) {
-            System.out.println("|  \u001B[31mThe username is invalid! Please try again\u001B[0m");
-            System.out.print("|  \u001B[33mPlease Enter your username:\u001B[0m ");
-            usernameCheck = scanner.nextLine();
-        }
-
-        System.out.print("|  \u001B[33mPlease Enter your password:\u001B[0m ");
-        String passwordCheck = scanner.nextLine(); // receive password from user input
-        while (passwordCheck.isEmpty() || !backend.passwordVerification(usernameCheck, passwordCheck)) {
-            System.out.println("|  \u001B[31mThe password is invalid! Please try again\u001B[0m");
-            System.out.print("|  \u001B[33mPlease Enter your password:\u001B[0m ");
-            passwordCheck = scanner.nextLine();
-        }
-
-        System.out.println("|  \u001B[32mUser: " + usernameCheck + " login successfully!\u001B[0m");
-        System.out.println("===================================================");
-        TicketSiteUser ticketSiteUser = new TicketSiteUser(usernameCheck, passwordCheck);
-        ticketSiteUser.userDashBoard();
+    public TicketSystemBackend(TicketSystemDB ticketSystemDB) {
+        this.ticketSystemDB = ticketSystemDB;
     }
 
     /**
@@ -87,52 +44,6 @@ public class TicketSystemBackend {
      * @return true if the password matches the stored password for the username, false otherwise.
      */
     public boolean passwordVerification(String username, String password) {return ticketSystemDB.passwordVerify(username, password);}
-
-    /**
-     * Interface for Register new user
-     *
-     * This method prompts the user to enter their username, password, and credit card number.
-     * It enforces policies on username, password, and credit card number before registering the user.
-     *
-     * @throws SQLException if a database access error occurs
-     */
-    public static void registerInterface() throws SQLException {
-        Scanner scanner = new Scanner(System.in);
-        TicketSystemBackend backend = new TicketSystemBackend();
-
-        System.out.println("\n");
-        System.out.println("===================================================");
-        System.out.println("|                                                 |");
-        System.out.println("|        \u001B[1m\u001B[34mREGISTER FOR NEW USER\u001B[0m                    |");
-        System.out.println("|                                                 |");
-        System.out.println("===================================================");
-
-        System.out.print("|  \u001B[33mPlease Enter your username:\u001B[0m ");
-        String newUserName = scanner.nextLine();
-        while (newUserName.isEmpty() || !backend.newUsernamePolicy(newUserName)) {
-            System.out.println("|  \u001B[31mUsername length must be between 6-20 characters and must not duplicate existing users.\u001B[0m");
-            System.out.print("|  \u001B[33mPlease Enter your username:\u001B[0m ");
-            newUserName = scanner.nextLine();
-        }
-
-        System.out.print("|  \u001B[33mPlease Enter your password:\u001B[0m ");
-        String newPassword = scanner.nextLine();
-        while (newPassword.isEmpty() || !backend.newPasswordPolicy(newPassword)) {
-            System.out.println("|  \u001B[31mPassword length must be between 8-20 characters long and include at least 3 different character categories.\u001B[0m");
-            System.out.print("|  \u001B[33mPlease Enter your password:\u001B[0m ");
-            newPassword = scanner.nextLine();
-        }
-
-        System.out.print("|  \u001B[33mPlease Enter your credit card number:\u001B[0m ");
-        String newCardNumber = scanner.nextLine();
-        while (newCardNumber.isEmpty() || !backend.newCardNumberPolicy(newCardNumber)) {
-            System.out.println("|  \u001B[31mCredit Card Number must be a 16-digit number.\u001B[0m");
-            System.out.print("|  \u001B[33mPlease Enter your credit card number:\u001B[0m ");
-            newCardNumber = scanner.nextLine();
-        }
-        backend.userRegister(newUserName, newPassword, newCardNumber);
-        System.out.println("|  \u001B[32mUser: " + newUserName + " register successfully!\u001B[0m");
-    }
 
     /**
      * Registers a new user with the provided username, password, and card number.
