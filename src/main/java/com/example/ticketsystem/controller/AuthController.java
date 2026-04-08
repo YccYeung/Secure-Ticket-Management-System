@@ -9,18 +9,15 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.ticketsystem.model.LoginRequest;
 import com.example.ticketsystem.model.RegisterRequest;
 import com.example.ticketsystem.service.AuthService;
-import com.example.ticketsystem.service.JwtService;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
     private AuthService authService;
-    private JwtService jwtService;
 
-    public AuthController(AuthService authService, JwtService jwtService) {
+    public AuthController(AuthService authService) {
         this.authService = authService;
-        this.jwtService = jwtService;
     }
     
     @PostMapping("/register")
@@ -35,7 +32,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         if (authService.login(request.getUsername(),request.getPassword())) {
-            return ResponseEntity.ok(jwtService.generateToken(request.getUsername()));
+            return ResponseEntity.ok("ok");
         }
         return ResponseEntity.badRequest().body("Invalid credentials");
     }

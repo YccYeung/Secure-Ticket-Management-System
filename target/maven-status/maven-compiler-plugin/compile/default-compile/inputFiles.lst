@@ -1,5 +1,4 @@
 /Users/chungchiyeung/Secure-Ticket-Management-System/src/main/java/com/example/ticketsystem/TicketSystemApplication.java
-/Users/chungchiyeung/Secure-Ticket-Management-System/src/main/java/com/example/ticketsystem/config/JwtAuthFilter.java
 /Users/chungchiyeung/Secure-Ticket-Management-System/src/main/java/com/example/ticketsystem/config/SecurityConfig.java
 /Users/chungchiyeung/Secure-Ticket-Management-System/src/main/java/com/example/ticketsystem/controller/AuthController.java
 /Users/chungchiyeung/Secure-Ticket-Management-System/src/main/java/com/example/ticketsystem/model/LoginRequest.java
@@ -7,5 +6,4 @@
 /Users/chungchiyeung/Secure-Ticket-Management-System/src/main/java/com/example/ticketsystem/repository/TicketSystemDB.java
 /Users/chungchiyeung/Secure-Ticket-Management-System/src/main/java/com/example/ticketsystem/service/AESEncryption.java
 /Users/chungchiyeung/Secure-Ticket-Management-System/src/main/java/com/example/ticketsystem/service/AuthService.java
-/Users/chungchiyeung/Secure-Ticket-Management-System/src/main/java/com/example/ticketsystem/service/JwtService.java
 /Users/chungchiyeung/Secure-Ticket-Management-System/src/main/java/com/example/ticketsystem/service/PaymentGateway.java
