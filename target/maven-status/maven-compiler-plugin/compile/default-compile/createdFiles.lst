@@ -1,3 +1,4 @@
+com/example/ticketsystem/config/SecurityConfig$1.class
 com/example/ticketsystem/TicketSystemApplication.class
 com/example/ticketsystem/service/PaymentGateway.class
 com/example/ticketsystem/service/AESEncryption.class

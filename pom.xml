@@ -70,11 +70,11 @@
     		<groupId>org.springframework.cloud</groupId>
    		 	<artifactId>spring-cloud-starter-vault-config</artifactId>
 		</dependency>
-			<dependency>
-    		<groupId>org.keycloak</groupId>
-    	<artifactId>keycloak-admin-client</artifactId>
-    	<version>24.0.0</version>
-</dependency>
+		<dependency>
+    		<groupId>commons-io</groupId>
+    		<artifactId>commons-io</artifactId>
+    		<version>2.14.0</version>
+		</dependency>
 	</dependencies>
 
 	<dependencyManagement>
