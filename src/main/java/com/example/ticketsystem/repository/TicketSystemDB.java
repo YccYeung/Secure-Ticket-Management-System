@@ -1,6 +1,5 @@
 package com.example.ticketsystem.repository;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Repository;
 
 import com.example.ticketsystem.service.AESEncryption;
@@ -11,7 +10,6 @@ import javax.crypto.SecretKey;
 import javax.sql.DataSource;
 
 import java.sql.*;
-import java.text.SimpleDateFormat;
 import java.util.HashMap;
 
 /**
@@ -50,7 +48,7 @@ public class TicketSystemDB {
       String sql = "CREATE TABLE IF NOT EXISTS users (" +
           "id INT AUTO_INCREMENT PRIMARY KEY, " +
           "username VARCHAR(50) NOT NULL, " +
-          "password VARCHAR(100) NOT NULL, " +
+          "keycloak_id VARCHAR(100) NOT NULL, " +
           "cardNumber VARCHAR(100) NOT NULL, " +
           "money int NOT NULL)";
       statement.executeUpdate(sql);
@@ -92,16 +90,8 @@ public class TicketSystemDB {
     } 
   }
 
-  /**
-   * Creates a new user in the database with a hashed password and card number.
-   *
-   * @param username the username of the new user
-   * @param password the password of the new user
-   * @param cardNumber the card number of the new user
-   * @throws SQLException if a database access error occurs
-   */
-  public void createUser(String username, String password, String cardNumber) throws SQLException{
-    String sql = "INSERT INTO users (username, password, cardNumber, money) VALUES (?,?,?,?) ";
+  public void createUser(String username, String keycloak_id, String cardNumber) throws SQLException{
+    String sql = "INSERT INTO users (username, keycloak_id, cardNumber, money) VALUES (?,?,?,?) ";
     String encryptedCardNumber = "";
     try {
       SecretKey key = AESEncryption.decodeKey(secretKey);
@@ -111,11 +101,11 @@ public class TicketSystemDB {
     }
 
     try {
-      Connection connection = dataSource.getConnection();;
+      Connection connection = dataSource.getConnection();
       PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
       preparedStatement.setString(1, username);
-      preparedStatement.setString(2, BCrypt.hashpw(password, BCrypt.gensalt()));
+      preparedStatement.setString(2, keycloak_id);
       preparedStatement.setString(3, encryptedCardNumber);
       preparedStatement.setInt(4, 0);
       preparedStatement.executeUpdate();
@@ -125,19 +115,13 @@ public class TicketSystemDB {
     }
   }
 
-  /**
-   * Verifies if a user with the specified username exists in the database.
-   *
-   * @param username the username to verify
-   * @return true if the user exists, false otherwise
-   */
-  public boolean userVerify(String username) {
-    String sql = "SELECT * from users where username = ?";
+  public boolean keycloakIdVerify(String keycloak_id) {
+    String sql = "SELECT * from users where keycloak_id = ?";
 
     try {
       Connection connection = dataSource.getConnection();
       PreparedStatement preparedStatement = connection.prepareStatement(sql);
-      preparedStatement.setString(1, username);
+      preparedStatement.setString(1, keycloak_id);
 
       try (ResultSet resultSet = preparedStatement.executeQuery()){
         if (resultSet.next()) {
@@ -146,42 +130,6 @@ public class TicketSystemDB {
       } catch (SQLException e) {
         System.out.println(e.getMessage());
       }
-    } catch (SQLException e) {
-      System.out.println(e.getMessage());
-    }
-
-    return false;
-  }
-
-  /**
-   * Verifies the provided password for the specified username against the stored password in the database.
-   *
-   * This method connects to the database, retrieves the stored password for the given username, and compares it
-   * with the provided password using BCrypt hashing.
-   *
-   * The method returns true if the provided password matches the stored password, otherwise false.
-   *
-   * @param username The username whose password is to be verified.
-   * @param password The password to be verified.
-   * @return true if the provided password matches the stored password, false otherwise.
-   */
-  public boolean passwordVerify(String username, String password) {
-    String sql = "SELECT password from users where username = ?";
-
-    try {
-      Connection connection = dataSource.getConnection();
-      PreparedStatement preparedStatement = connection.prepareStatement(sql);
-      preparedStatement.setString(1, username);
-
-      try (ResultSet resultSet = preparedStatement.executeQuery()) {
-        if (resultSet.next()) {
-          String storedPassword = resultSet.getString("password");
-          return BCrypt.checkpw(password, storedPassword);
-        }
-      } catch (SQLException e) {
-        System.out.println(e.getMessage());
-      }
-
     } catch (SQLException e) {
       System.out.println(e.getMessage());
     }
@@ -533,7 +481,6 @@ public class TicketSystemDB {
     }
   }
 
-
   /**
    * Deletes a user's ticket record for a specified game.
    * This method connects to the database and deletes the user's ticket record for the specified game.
@@ -550,103 +497,6 @@ public class TicketSystemDB {
       preparedStatement.setString(1, username);
       preparedStatement.setString(2, gameName);
       preparedStatement.executeUpdate();
-    } catch (SQLException e) {
-      System.out.println(e.getMessage());
-    }
-  }
-
-  /**
-   * Lists the current tickets held by the user.
-   * This method connects to the database and retrieves the user's current ticket holdings,
-   * displaying them in a formatted table with ANSI colors.
-   */
-  public void listCurrentTicketsHolding() {
-    String sql = "SELECT t.name, t.price, s.quantity from tickets t " +
-        "INNER JOIN user_tickets s ON s.ticket_id = t.id " +
-        "INNER JOIN users u ON s.user_id = u.id";
-    try (Connection connection = dataSource.getConnection();
-        PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-
-      ResultSet resultSet = preparedStatement.executeQuery();
-
-      // ANSI escape codes for colors
-      final String ANSI_RESET = "\u001B[0m";
-      final String ANSI_CYAN = "\u001B[36m";
-      final String ANSI_BRIGHT_YELLOW = "\u001B[93m";
-      final String ANSI_BRIGHT_GREEN = "\u001B[92m";
-      final String ANSI_BRIGHT_RED = "\u001B[91m";
-      final String ANSI_BRIGHT_WHITE = "\u001B[97m";
-
-      // Print header
-      System.out.println(ANSI_CYAN + "╭───────────────────────────────────────────────────────────────────────────╮");
-      System.out.println("│                          " + ANSI_BRIGHT_GREEN + "Current Tickets Holding" + ANSI_CYAN + "                          │");
-      System.out.println("├───────────────────────────────────────────────────────────────────────────┤");
-      System.out.printf("│ %-30s │ %-11s │ %-10s │ %-13s │%n", "Game Name", "Price", "Quantity", "Total Cost");
-      System.out.println("├───────────────────────────────────────────────────────────────────────────┤");
-
-      boolean hasTickets = false;
-      while (resultSet.next()) {
-        hasTickets = true;
-        String gameName = resultSet.getString("name");
-        double price = resultSet.getDouble("price");
-        int quantity = resultSet.getInt("quantity");
-        double totalCost = price * quantity;
-        availableToSellList.put(gameName, 1);
-
-        // Print each ticket
-        System.out.printf("│ %-30s │ $%-10.2f │ %-10d │ $%-12.2f │%n", gameName, price, quantity, totalCost);
-      }
-
-      if (!hasTickets) {
-        System.out.println("│                  " + ANSI_BRIGHT_RED + "No tickets currently held." + ANSI_CYAN + "                          │");
-      }
-
-      // Print footer
-      System.out.println("╰───────────────────────────────────────────────────────────────────────────╯" + ANSI_RESET);
-
-    } catch (SQLException e) {
-      System.out.println(e.getMessage());
-    }
-  }
-
-  /**
-   * Displays the game schedule in a formatted table.
-   * This method connects to the database, retrieves the game schedule,
-   * and displays it in a neatly formatted table with color coding for home and road games.
-   */
-  public void gameSchedule() {
-    String query = "SELECT name, location, price, event_date FROM tickets ORDER BY event_date";
-    try (Connection conn = dataSource.getConnection();
-        Statement stmt = conn.createStatement();
-        ResultSet rs = stmt.executeQuery(query)) {
-
-      System.out.println("╔═════════════════════════════════════════════════════════════════════════════════════════╗");
-      System.out.println("║                                   \u001B[1mGAME SCHEDULE\u001B[0m                                         ║");
-      System.out.println("╠═══════════════════════════════════╦════════════════════════╦══════════════╦═════════════╣");
-      System.out.printf("║ %-33s ║ %-22s ║ %-12s ║ %-11s ║\n", "Game", "Location", "Date", "Price");
-      System.out.println("╠═══════════════════════════════════╬════════════════════════╬══════════════╬═════════════╣");
-
-      SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-
-      while (rs.next()) {
-        String name = rs.getString("name");
-        String location = rs.getString("location");
-        String eventDate = dateFormat.format(rs.getTimestamp("event_date"));
-        String price = String.format("$%.2f", rs.getDouble("price"));
-        gameNameAllowList.put(name, 1);
-
-        // Apply color based on location
-        if ("Camp Randall Stadium".equals(location)) {
-          // Home game in green color
-          System.out.printf("\u001B[32m║ %-33s ║ %-22s ║ %-12s ║ %-11s ║\u001B[0m\n", name, location, eventDate, price);
-        } else {
-          // Road game in red color
-          System.out.printf("\u001B[31m║ %-33s ║ %-22s ║ %-12s ║ %-11s ║\u001B[0m\n", name, location, eventDate, price);
-        }
-      }
-
-      System.out.println("╚═══════════════════════════════════╩════════════════════════╩══════════════╩═════════════╝");
-
     } catch (SQLException e) {
       System.out.println(e.getMessage());
     }
