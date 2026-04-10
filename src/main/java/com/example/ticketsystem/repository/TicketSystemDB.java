@@ -1,8 +1,11 @@
 package com.example.ticketsystem.repository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Repository;
 
 import com.example.ticketsystem.service.AESEncryption;
+
+import jakarta.annotation.PostConstruct;
 
 import javax.crypto.SecretKey;
 import javax.sql.DataSource;
@@ -21,54 +24,22 @@ import java.util.HashMap;
 public class TicketSystemDB {
 
   private final DataSource dataSource;
-  private final String DB_HOST = System.getenv("DB_HOST");
-  private final String DB_PORT = System.getenv("DB_PORT");
-  private final String DBNAME = System.getenv("DB_NAME");
-  private final String JDBC_URL = "jdbc:mysql://" + DB_HOST + ":" + DB_PORT + "/";
-  private final String jdbcUrlWithDatabase = JDBC_URL + DBNAME;
-  private final String USER = System.getenv("DB_USER");
-  private final String PASSWORD = System.getenv("DB_PASSWORD");
-  private final String secretKey = System.getenv("AES_SECRET_KEY");
+
+  @Value("${aes_key}")
+  private String secretKey;
+  
   public HashMap<String, Integer> gameNameAllowList = new HashMap<>();
   public HashMap<String, Integer> availableToSellList = new HashMap<>();
 
-  /**
-   * Constructs a TicketSystemDB object and initializes the database.
-   * This constructor creates the database and necessary tables if they do not already exist.
-   */
   public TicketSystemDB(DataSource dataSource) {
     this.dataSource = dataSource;
-    createDatabase();
-    createTable();
   }
 
-  /**
-   * Creates the database if it does not already exist.
-   */
-  public void createDatabase() {
-    Connection connection = null;
-    Statement statement = null;
-
-    try {
-      connection = dataSource.getConnection();
-      statement = connection.createStatement();
-      String sql = "CREATE DATABASE IF NOT EXISTS " + DBNAME;
-      statement.executeUpdate(sql);
-    } catch (SQLException e) {
-      System.out.println(e.getMessage());
-    } finally {
-      try {
-        if (statement != null) statement.close();
-        if (connection != null) connection.close();
-      } catch (SQLException e) {
-        System.out.println(e.getMessage());
-      }
-    }
+  @PostConstruct
+  public void init() {
+      createTable();
   }
 
-  /**
-   * Creates the users table if it does not already exist.
-   */
   public void createTable() {
     Connection connection = null;
     Statement statement = null;

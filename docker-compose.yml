@@ -19,3 +19,15 @@ services:
     command: start-dev
     depends_on:
       - mysql
+
+  vault:
+    image: hashicorp/vault:latest
+    ports:
+      - "8200:8200"
+    environment:
+      - VAULT_DEV_ROOT_TOKEN_ID=${VAULT_DEV_TOKEN}
+      - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
+    cap_add:
+      - IPC_LOCK
+    entrypoint:
+      vault server -dev
