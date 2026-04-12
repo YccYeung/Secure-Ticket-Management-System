@@ -1,3 +1,4 @@
+package com.example.ticketsystem.service;
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;

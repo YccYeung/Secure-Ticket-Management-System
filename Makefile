@@ -1,5 +1,4 @@
 # Makefile for Secure-Ticket-Management-System
-
 # Default target
 all: clean compile run
 
@@ -13,8 +12,7 @@ compile:
 
 # Run the project
 run:
-	mvn exec:java -Dexec.mainClass="TicketSystemFrontend"
+	mvn spring-boot:run
 
 # Phony targets
 .PHONY: all clean compile run
-
