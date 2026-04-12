@@ -51,7 +51,7 @@ function LandingPage() {
             Sign in
           </button>
           <button
-            onClick={() => navigate('/register')}
+            onClick={() => keycloak.register()}
             style={{
               padding: '10px 24px', border: '1.5px solid #C5050C', borderRadius: 100,
               background: '#C5050C', cursor: 'pointer', fontWeight: 600,

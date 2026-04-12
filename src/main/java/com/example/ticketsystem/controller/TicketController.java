@@ -31,6 +31,13 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.getAllTickets());
     }
 
+    @PreAuthorize("hasRole('user')")
+    @GetMapping("/api/tickets/my")
+    public ResponseEntity<?> getMyTickets(@AuthenticationPrincipal Jwt jwt) throws SQLException {
+        String keycloakId = jwt.getSubject();
+        return ResponseEntity.ok(ticketService.getUserTickets(keycloakId));
+    }
+
     @PreAuthorize("hasRole('admin')")
     @GetMapping("/api/admin/tickets")
     public ResponseEntity<?> manageTicket() {

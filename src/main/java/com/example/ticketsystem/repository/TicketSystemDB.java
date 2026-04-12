@@ -50,8 +50,8 @@ public class TicketSystemDB {
       statement = connection.createStatement();
       String sql = "CREATE TABLE IF NOT EXISTS users (" +
           "id INT AUTO_INCREMENT PRIMARY KEY, " +
-          "username VARCHAR(50) NOT NULL, " +
-          "keycloak_id VARCHAR(100) NOT NULL, " +
+          "username VARCHAR(50) NOT NULL UNIQUE, " +
+          "keycloak_id VARCHAR(100) NOT NULL UNIQUE, " +
           "cardNumber VARCHAR(100) NOT NULL, " +
           "money int NOT NULL)";
       statement.executeUpdate(sql);
@@ -65,7 +65,7 @@ public class TicketSystemDB {
       statement = connection.createStatement();
       String sql = "CREATE TABLE IF NOT EXISTS tickets (" +
           "id INT AUTO_INCREMENT PRIMARY KEY, " +
-          "name VARCHAR(50) NOT NULL, " +
+          "name VARCHAR(50) NOT NULL UNIQUE, " +
           "location VARCHAR(50) NOT NULL, " +
           "price DOUBLE NOT NULL, " +
           "quantity INT NOT NULL, " + 
@@ -140,20 +140,6 @@ public class TicketSystemDB {
     return false;
   }
 
-  /**
-   * Verifies the provided credit card number for the specified username against the stored encrypted credit card number in the database.
-   *
-   * This method connects to the database, retrieves the stored encrypted credit card number for the given username,
-   * decrypts it using AES encryption, and compares it with the provided credit card number.
-   *
-   * The method returns true if the provided credit card number matches the decrypted stored credit card number, otherwise false.
-   *
-   *
-   * @param username The username whose credit card number is to be verified.
-   * @param cardNumber The credit card number to be verified.
-   * @return true if the provided credit card number matches the decrypted stored credit card number, false otherwise.
-   * @throws SQLException If a database access error occurs.
-   */
   public boolean creditCardVerify(String username, String cardNumber) throws SQLException {
     String sql = "select cardNumber from users where username = ?";
     try  {
@@ -180,18 +166,6 @@ public class TicketSystemDB {
     return false;
   }
 
-  /**
-   * Retrieves and decrypts the stored credit card number for the specified username.
-   *
-   * This method connects to the database, retrieves the encrypted credit card number for the given username,
-   * decrypts it using AES encryption, and returns the decrypted (plain) credit card number.
-   *
-   * The method returns an empty string if the username is not found or if any error occurs during the process.
-   *
-   * @param username The username whose credit card number is to be retrieved and decrypted.
-   * @return The decrypted (plain) credit card number, or an empty string if an error occurs.
-   * @throws SQLException If a database access error occurs.
-   */
   public String getCardNumber(String username) throws SQLException {
     String plainCardNumber = "";
     String sql = "select cardNumber from users where username = ?";
@@ -234,18 +208,17 @@ public class TicketSystemDB {
   public int getBalance(String keycloakId) throws SQLException {
     String sql = "Select money from users where keycloak_id = ?"; 
 
-    Connection connection = dataSource.getConnection();
-    PreparedStatement preparedStatement = connection.prepareStatement(sql);
-
-    preparedStatement.setString(1, keycloakId);
-    try (ResultSet resultSet = preparedStatement.executeQuery()) {
-      if (resultSet.next()) {
-        return resultSet.getInt("money");
+    try (Connection connection = dataSource.getConnection();
+    PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+      preparedStatement.setString(1, keycloakId);
+      try (ResultSet resultSet = preparedStatement.executeQuery()) {
+        if (resultSet.next()) {
+          return resultSet.getInt("money");
+        }
+      } catch (SQLException e) {
+        System.out.println(e.getMessage()); 
       }
-    } catch (SQLException e) {
-      System.out.println(e.getMessage()); 
     }
-    
     return -1;
   }
 
@@ -279,31 +252,30 @@ public class TicketSystemDB {
     ArrayList<Map<String, Object>> eventList = new ArrayList<Map<String, Object>>();
     String sql = "Select * from tickets";
 
-    Connection connection = dataSource.getConnection();
-    PreparedStatement preparedStatement = connection.prepareStatement(sql);
-
-    try (ResultSet resultSet = preparedStatement.executeQuery()) {
-      while (resultSet.next()) {
-        String id = resultSet.getString("id");
-        String name = resultSet.getString("name");
-        String location = resultSet.getString("location");
-        double price = resultSet.getDouble("price");
-        int quantity = resultSet.getInt("quantity");
-        Date eventDate = resultSet.getDate("event_date");
-
-        Map<String, Object> event = new HashMap<String, Object>(); 
-        event.put("id", id);
-        event.put("name", name);
-        event.put("location", location);
-        event.put("price", price);
-        event.put("quantity", quantity);
-        event.put("event_date", eventDate.toString());
-        eventList.add(event); 
+    try (Connection connection = dataSource.getConnection();
+    PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+      try (ResultSet resultSet = preparedStatement.executeQuery()) {
+        while (resultSet.next()) {
+          String id = resultSet.getString("id");
+          String name = resultSet.getString("name");
+          String location = resultSet.getString("location");
+          double price = resultSet.getDouble("price");
+          int quantity = resultSet.getInt("quantity");
+          Date eventDate = resultSet.getDate("event_date");
+  
+          Map<String, Object> event = new HashMap<String, Object>(); 
+          event.put("id", id);
+          event.put("name", name);
+          event.put("location", location);
+          event.put("price", price);
+          event.put("quantity", quantity);
+          event.put("event_date", eventDate.toString());
+          eventList.add(event); 
+        }
+      } catch (SQLException e) {
+        System.out.println(e.getMessage());
       }
-    } catch (SQLException e) {
-      System.out.println(e.getMessage());
     }
-
     return eventList;
   }
 
@@ -396,6 +368,43 @@ public class TicketSystemDB {
       System.out.println(e.getMessage());
     }
   }
+
+  public List<Map<String, Object>> getUserTicket(String keycloakId) throws SQLException {
+    String sql = "Select ut.quantity, t.name, t.price, t.location, t.event_date " + 
+                "FROM user_tickets ut  " +
+                "JOIN tickets t ON ut.ticket_id = t.id  " + 
+                "where ut.user_id = (SELECT id from users where keycloak_id = ?)";
+
+    List<Map<String, Object>> userTickets = new ArrayList<Map<String, Object>>();
+    try (Connection connection = dataSource.getConnection();
+        PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+      preparedStatement.setString(1, keycloakId);
+      try (ResultSet resultSet = preparedStatement.executeQuery()){
+        while (resultSet.next()) { 
+          int quantity = resultSet.getInt("quantity");
+          String gameName = resultSet.getString("name");
+          Double price = resultSet.getDouble("price");
+          String location = resultSet.getString("location");
+          Date eventDate = resultSet.getDate("event_date");
+
+          Map<String, Object> record = new HashMap<String, Object>();
+          record.put("quantity", quantity);
+          record.put("gameName", gameName);
+          record.put("price", price);
+          record.put("location", location);
+          record.put("eventDate", eventDate);
+
+          userTickets.add(record);
+        }
+      } catch (Exception e) {
+        System.out.println(e.getMessage());
+      }
+
+    } catch (SQLException e) {
+      System.out.println(e.getMessage());
+    }
+    return userTickets;
+  } 
 
   public int getUserTicketQuantity(String keycloakId, String gameName) throws SQLException {
     String sql = "Select quantity from user_tickets " +

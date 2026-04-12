@@ -32,7 +32,7 @@ jobs:
         uses: dependency-check/Dependency-Check_Action@main
         id: Depcheck
         with:
-          project: 'Secure-Ticket-Management-System'
+          project: 'BadgerPass'
           path: '.'
           format: 'HTML'
           out: 'reports'
@@ -94,4 +94,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/yccyeung/secure-ticket-management-system:latest 
+          tags: ghcr.io/yccyeung/badgerpass:latest

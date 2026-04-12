@@ -7,7 +7,6 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 
 import com.example.ticketsystem.repository.TicketSystemDB;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators.None;
 
 @Service
 public class TicketService {
@@ -20,6 +19,10 @@ public class TicketService {
 
     public List<Map<String, Object>> getAllTickets() throws SQLException {
         return ticketSystemDB.getAllTickets();
+    }
+
+    public List<Map<String, Object>> getUserTickets(String keycloakId) throws SQLException {
+        return ticketSystemDB.getUserTicket(keycloakId);
     }
 
     public boolean buyTicket(String keycloakId, String ticketName, int quantity) throws SQLException {
