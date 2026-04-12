@@ -10,7 +10,10 @@ import javax.crypto.SecretKey;
 import javax.sql.DataSource;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Provides database access and operations for the Ticket Management System.
@@ -215,47 +218,44 @@ public class TicketSystemDB {
     return plainCardNumber;
   }
 
-  /**
-   * Deposits a specified amount of money into the user's account.
-   *
-   * This method connects to the database and updates the user's account balance by adding the specified
-   * deposit amount to the existing balance.
-   *
-   * The method uses a parameterized SQL query to prevent SQL injection attacks and ensure safe execution.
-   *
-   * @param username The username of the user who is depositing the money.
-   * @param moneyAmount The amount of money to be deposited.
-   * @throws SQLException If a database access error occurs.
-   */
-  public void depositMoney(String username, Double moneyAmount) throws SQLException {
-    String sql = "Update users set money = money + ? where username = ?";
+
+  public void depositMoney(String keycloakId, Double moneyAmount) throws SQLException {
+    String sql = "Update users set money = money + ? where keycloak_id = ?";
     try (Connection connection = dataSource.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
       preparedStatement.setDouble(1, moneyAmount);
-      preparedStatement.setString(2, username);
+      preparedStatement.setString(2, keycloakId);
       preparedStatement.executeUpdate();
     } catch (SQLException e) {
       System.out.println(e.getMessage());
     }
   }
 
-  /**
-   * Checks if the user's account balance is sufficient for a specified amount.
-   * This method connects to the database, retrieves the user's account balance,
-   * and compares it to the specified amount.
-   *
-   * @param username The username of the user whose account balance is to be checked.
-   * @param moneyAmount The amount to check against the user's account balance.
-   * @return true if the account balance is sufficient, false otherwise.
-   * @throws SQLException If a database access error occurs.
-   */
-  public boolean checkAccountBalance(String username, Double moneyAmount) throws SQLException {
-    String sql = "Select money from users where username = ?";
+  public int getBalance(String keycloakId) throws SQLException {
+    String sql = "Select money from users where keycloak_id = ?"; 
+
+    Connection connection = dataSource.getConnection();
+    PreparedStatement preparedStatement = connection.prepareStatement(sql);
+
+    preparedStatement.setString(1, keycloakId);
+    try (ResultSet resultSet = preparedStatement.executeQuery()) {
+      if (resultSet.next()) {
+        return resultSet.getInt("money");
+      }
+    } catch (SQLException e) {
+      System.out.println(e.getMessage()); 
+    }
+    
+    return -1;
+  }
+
+  public boolean checkAccountBalance(String keycloakId, Double moneyAmount) throws SQLException {
+    String sql = "Select money from users where keycloak_id = ?";
 
     try (Connection connection = dataSource.getConnection();
          PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
-        preparedStatement.setString(1, username);
+        preparedStatement.setString(1, keycloakId);
 
         try (ResultSet resultSet = preparedStatement.executeQuery()) {
           if (resultSet.next()) {
@@ -274,16 +274,39 @@ public class TicketSystemDB {
     return false;
   }
 
-  /**
-   * Verifies if there are enough tickets available for a specified game.
-   * This method connects to the database, retrieves the available quantity of tickets for the specified game,
-   * and compares it to the requested number of tickets.
-   *
-   * @param gameName The name of the game for which ticket availability is to be checked.
-   * @param ticketNumber The number of tickets to check for availability.
-   * @return true if the available quantity is sufficient, false otherwise.
-   * @throws SQLException If a database access error occurs.
-   */
+  public List<Map<String, Object>> getAllTickets() throws SQLException {
+
+    ArrayList<Map<String, Object>> eventList = new ArrayList<Map<String, Object>>();
+    String sql = "Select * from tickets";
+
+    Connection connection = dataSource.getConnection();
+    PreparedStatement preparedStatement = connection.prepareStatement(sql);
+
+    try (ResultSet resultSet = preparedStatement.executeQuery()) {
+      while (resultSet.next()) {
+        String id = resultSet.getString("id");
+        String name = resultSet.getString("name");
+        String location = resultSet.getString("location");
+        double price = resultSet.getDouble("price");
+        int quantity = resultSet.getInt("quantity");
+        Date eventDate = resultSet.getDate("event_date");
+
+        Map<String, Object> event = new HashMap<String, Object>(); 
+        event.put("id", id);
+        event.put("name", name);
+        event.put("location", location);
+        event.put("price", price);
+        event.put("quantity", quantity);
+        event.put("event_date", eventDate.toString());
+        eventList.add(event); 
+      }
+    } catch (SQLException e) {
+      System.out.println(e.getMessage());
+    }
+
+    return eventList;
+  }
+
   public boolean ticketQuantityVerify(String gameName, int ticketNumber) throws SQLException{
     String sql = "Select quantity from tickets where name = ?";
 
@@ -338,54 +361,30 @@ public class TicketSystemDB {
     return totalCost;
   }
 
-  /**
-   * Deducts a specified amount of money from the user's account for a purchase.
-   * This method connects to the database and updates the user's account balance by subtracting the specified amount.
-   *
-   * @param username The username of the user making the purchase.
-   * @param moneyAmount The amount of money to be deducted from the user's account.
-   * @throws SQLException If a database access error occurs.
-   */
-  public void purchaseRequest(String username, Double moneyAmount) throws SQLException {
-    String sql = "Update users set money = money - ? where username = ?";
+  public void purchaseRequest(String keycloakId, Double moneyAmount) throws SQLException {
+    String sql = "Update users set money = money - ? where keycloak_id = ?";
     try (Connection connection = dataSource.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
       preparedStatement.setDouble(1, moneyAmount);
-      preparedStatement.setString(2, username);
+      preparedStatement.setString(2, keycloakId);
       preparedStatement.executeUpdate();
     } catch (SQLException e) {
       System.out.println(e.getMessage());
     }
   }
 
-  /**
-   * Adds a specified amount of money to the user's account as a refund.
-   * This method connects to the database and updates the user's account balance by adding the specified amount.
-   *
-   * @param username The username of the user receiving the refund.
-   * @param moneyAmount The amount of money to be added to the user's account.
-   * @throws SQLException If a database access error occurs.
-   */
-  public void refundRequest(String username, Double moneyAmount) throws SQLException {
-    String sql = "Update users set money = money + ? where username = ?";
+  public void refundRequest(String keycloakId, Double moneyAmount) throws SQLException {
+    String sql = "Update users set money = money + ? where keycloak_id = ?";
     try (Connection connection = dataSource.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
       preparedStatement.setDouble(1, moneyAmount);
-      preparedStatement.setString(2, username);
+      preparedStatement.setString(2, keycloakId);
       preparedStatement.executeUpdate();
     } catch (SQLException e) {
       System.out.println(e.getMessage());
     }
   }
 
-  /**
-   * Updates the quantity of tickets for a specified game.
-   * This method connects to the database and updates the quantity of tickets available for the specified game.
-   *
-   * @param gameName The name of the game for which the ticket quantity is to be updated.
-   * @param ticketNumber The number of tickets to be added (positive) or removed (negative) from the current quantity.
-   * @throws SQLException If a database access error occurs.
-   */
   public void updateTicketQuantity(String gameName, int ticketNumber) throws SQLException {
     String sql = "Update tickets set quantity = quantity + ? where name = ?";
     try (Connection connection = dataSource.getConnection();
@@ -398,25 +397,15 @@ public class TicketSystemDB {
     }
   }
 
-  /**
-   * Retrieves the quantity of tickets a user holds for a specified game.
-   * This method connects to the database, retrieves the quantity of tickets held by the user for the specified game,
-   * and returns the quantity.
-   *
-   * @param username The username of the user.
-   * @param gameName The name of the game for which the ticket quantity is to be retrieved.
-   * @return The quantity of tickets the user holds for the specified game.
-   * @throws SQLException If a database access error occurs.
-   */
-  public int getUserTicketQuantity(String username, String gameName) throws SQLException {
+  public int getUserTicketQuantity(String keycloakId, String gameName) throws SQLException {
     String sql = "Select quantity from user_tickets " +
-        "where user_id = (SELECT id from users where username = ?) " +
+        "where user_id = (SELECT id from users where keycloak_id = ?) " +
         "AND ticket_id = (SELECT id from tickets where name = ?)";
     int ticketNumber = 0;
 
     try (Connection connection = dataSource.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-      preparedStatement.setString(1, username);
+      preparedStatement.setString(1, keycloakId);
       preparedStatement.setString(2, gameName);
 
       try (ResultSet resultSet = preparedStatement.executeQuery()){
@@ -434,22 +423,14 @@ public class TicketSystemDB {
     return ticketNumber;
   }
 
-  /**
-   * Creates or updates a record of tickets purchased by a user for a specified game.
-   * This method inserts a new record into the user_tickets table or updates an existing record if it already exists.
-   *
-   * @param username The username of the user purchasing the tickets.
-   * @param gameName The name of the game for which the tickets are purchased.
-   * @param ticketNumbers The number of tickets purchased.
-   */
-  public void createUserTicketsRecord(String username, String gameName, int ticketNumbers) {
+  public void createUserTicketsRecord(String keycloakId, String gameName, int ticketNumbers) {
     String sql = "INSERT INTO user_tickets (user_id, ticket_id, quantity) " +
-        "SELECT u.id, t.id, ? from users u, tickets t where u.username = ? and t.name = ?" +
+        "SELECT u.id, t.id, ? from users u, tickets t where u.keycloak_id = ? and t.name = ?" +
         "ON DUPLICATE KEY UPDATE user_tickets.quantity = user_tickets.quantity + VALUES(quantity)";
     try (Connection connection = dataSource.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
       preparedStatement.setDouble(1, ticketNumbers);
-      preparedStatement.setString(2, username);
+      preparedStatement.setString(2, keycloakId);
       preparedStatement.setString(3, gameName);
       preparedStatement.executeUpdate();
     } catch (SQLException e) {
@@ -457,23 +438,15 @@ public class TicketSystemDB {
     }
   }
 
-  /**
-   * Updates the number of tickets held by a user for a specified game.
-   * This method connects to the database and decreases the quantity of tickets held by the user for the specified game.
-   *
-   * @param username The username of the user whose ticket quantity is to be updated.
-   * @param gameName The name of the game for which the ticket quantity is to be updated.
-   * @param ticketNumbers The number of tickets to be subtracted from the user's current holding.
-   */
-  public void updateUserTicketsNumber(String username, String gameName, int ticketNumbers) {
+  public void updateUserTicketsNumber(String keycloakId, String gameName, int ticketNumbers) {
     String sql = "Update user_tickets set quantity = quantity - ? " +
-        "where user_id = (SELECT id from users where username = ?)" +
+        "where user_id = (SELECT id from users where keycloak_id = ?)" +
         "AND ticket_id = (SELECT id from tickets where name = ?)";
 
     try (Connection connection = dataSource.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
       preparedStatement.setInt(1, ticketNumbers);
-      preparedStatement.setString(2, username);
+      preparedStatement.setString(2, keycloakId);
       preparedStatement.setString(3, gameName);
       preparedStatement.executeUpdate();
     } catch (SQLException e) {
@@ -481,20 +454,13 @@ public class TicketSystemDB {
     }
   }
 
-  /**
-   * Deletes a user's ticket record for a specified game.
-   * This method connects to the database and deletes the user's ticket record for the specified game.
-   *
-   * @param username The username of the user whose ticket record is to be deleted.
-   * @param gameName The name of the game for which the ticket record is to be deleted.
-   */
-  public void deleteUserTicketsRecord(String username, String gameName) {
-    String sql = "DELETE from user_tickets where user_id = (SELECT id from users where username = ?) " +
+  public void deleteUserTicketsRecord(String keycloakId, String gameName) {
+    String sql = "DELETE from user_tickets where user_id = (SELECT id from users where keycloak_id = ?) " +
         "AND ticket_id = (SELECT id from tickets where name = ?)";
 
     try (Connection connection = dataSource.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-      preparedStatement.setString(1, username);
+      preparedStatement.setString(1, keycloakId);
       preparedStatement.setString(2, gameName);
       preparedStatement.executeUpdate();
     } catch (SQLException e) {

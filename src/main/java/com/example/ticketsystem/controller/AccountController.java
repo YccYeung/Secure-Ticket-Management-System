@@ -46,4 +46,10 @@ public class AccountController {
         }
         return ResponseEntity.badRequest().body("Setup failed");
     }
+
+    @GetMapping("/balance")
+    public ResponseEntity<?> userAccountBalance(@AuthenticationPrincipal Jwt jwt) {
+        String keycloakId = jwt.getSubject();
+        return ResponseEntity.ok(Map.of("balance", accountService.getBalance(keycloakId)));
+    }
 }

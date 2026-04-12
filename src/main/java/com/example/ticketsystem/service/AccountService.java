@@ -29,4 +29,12 @@ public class AccountService {
     public boolean newCardNumberPolicy(String newCardNumber) {
         return newCardNumber.length() == 16 && newCardNumber.matches("\\d+");
     }
+
+    public int getBalance(String keycloakId) {
+        try {
+            return ticketSystemDB.getBalance(keycloakId);
+        } catch (SQLException e) {
+            return -1;
+        }
+    }
 }
