@@ -141,9 +141,9 @@ Fill in your values:
 ```env
 DB_USER=your_username
 DB_PASSWORD=your_password
-DB_NAME=SystemDB
+DB_NAME=your_db_name
 DB_ROOT_PASSWORD=your_root_password
-VAULT_DEV_TOKEN=testtoken
+VAULT_DEV_TOKEN=your_token
 KEYCLOAK_CLIENT_SECRET=your_keycloak_client_secret
 ```
 
