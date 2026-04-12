@@ -8,11 +8,11 @@ A full-stack ticket commerce platform for Wisconsin Badgers football, built as a
 
 | Landing | Dashboard |
 |---|---|
-| ![Landing](docs/screenshots/landing.png) | ![Dashboard](docs/screenshots/dashboard.png) |
+| ![Landing](docs/screenshots/Landing.png) | ![Dashboard](docs/screenshots/Dashboard.png) |
 
 | Tickets | Account |
 |---|---|
-| ![Tickets](docs/screenshots/tickets.png) | ![Account](docs/screenshots/account.png) |
+| ![Tickets](docs/screenshots/Tickets.png) | ![Account](docs/screenshots/Account.png) |
 
 ---
 
