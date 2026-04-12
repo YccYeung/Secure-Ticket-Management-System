@@ -1,5 +1,4 @@
 com/example/ticketsystem/TicketSystemApplication.class
-com/example/ticketsystem/service/PaymentGateway.class
 com/example/ticketsystem/config/KeycloakRoleConverter.class
 com/example/ticketsystem/config/SecurityConfig.class
 com/example/ticketsystem/controller/TicketController.class

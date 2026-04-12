@@ -1,0 +1,54 @@
+{
+  "hash": "3339247a",
+  "configHash": "f3eaaaec",
+  "lockfileHash": "420ede7e",
+  "browserHash": "819f07c9",
+  "optimized": {
+    "@react-keycloak/web": {
+      "src": "../../node_modules/@react-keycloak/web/lib/index.js",
+      "file": "@react-keycloak_web.js",
+      "fileHash": "26e4cee6",
+      "needsInterop": false
+    },
+    "keycloak-js": {
+      "src": "../../node_modules/keycloak-js/lib/keycloak.js",
+      "file": "keycloak-js.js",
+      "fileHash": "ecb350ae",
+      "needsInterop": false
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "e4aa4703",
+      "needsInterop": true
+    },
+    "react-router-dom": {
+      "src": "../../node_modules/react-router-dom/dist/index.mjs",
+      "file": "react-router-dom.js",
+      "fileHash": "1127e510",
+      "needsInterop": false
+    },
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "7e8ca36f",
+      "needsInterop": true
+    },
+    "react/jsx-dev-runtime": {
+      "src": "../../node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "c11383e9",
+      "needsInterop": true
+    }
+  },
+  "chunks": {
+    "react-BQupsjBO": {
+      "file": "react-BQupsjBO.js",
+      "isDynamicEntry": false
+    },
+    "react-dom-NWqLDSPJ": {
+      "file": "react-dom-NWqLDSPJ.js",
+      "isDynamicEntry": false
+    }
+  }
+}
