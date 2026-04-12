@@ -1,4 +1,7 @@
-# Makefile for Secure-Ticket-Management-System
+include .env
+export
+
+# Makefile for badgerpass
 # Default target
 all: clean compile run
 
