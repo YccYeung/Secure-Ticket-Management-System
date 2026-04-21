@@ -263,6 +263,7 @@ badgerpass/
 
 ## Roadmap (v2)
 
+- [ ] - [ ] Fully integrate HashiCorp Vault for all secrets management (migrate DB credentials from .env to Vault KV store)
 - [ ] Payment Service microservice (mock bank API)
 - [ ] Notification Service (email via Kafka events)
 - [ ] Kafka event streaming (`ticket.purchased`, `payment.processed`, `ticket.sold`)
